@@ -45,7 +45,7 @@ def get_new_cat():
                 cat = {"url": url, "title": title}
                 if ".gif" in url:
                     if url not in posted_cats:
-                        cat_collection.append(url)
+                        cat_collection.append(cat)
 
         cat = cat_collection.popleft()
         return cat
@@ -110,9 +110,12 @@ def post_new_cat():
     try:
         response = post_cat(cat)
         response.raise_for_status()
-        posted_cats.append(cat)
+        posted_cats.append(cat["url"])
     except:
-        logging.error(f"Failed to post cat :({response})")
+        try:
+            logging.error(f"Failed to post cat :{response}")
+        except:
+            logging.error(f"Failed to post cat due to internal error")
         return
     else:
         logging.info(f"Posted cat: {response}")
