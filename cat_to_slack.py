@@ -26,24 +26,31 @@ class CatShortageError(RuntimeError):
 # fetching cats
 
 CAT_URL = "https://www.reddit.com/r/CatGifs/hot.json"
-CAT_PARAMS = {"sort": "top", "t": "day"}
-CAT_HEADERS = {"User-Agent": "Cat to Slack 1.1"}
+CAT_PARAMS = {"sort": "top", "t": "day", "limit": "100"}
+CAT_HEADERS = {"user-agent": "Cat to Slack 1.1"}
 
-last_cats = collections.deque([], 30)
+cat_collection = collections.deque([], 100)
+posted_cats = collections.deque([], 14)
 
 
 def get_new_cat():
-    response = requests.get(CAT_URL, params=CAT_PARAMS, headers=CAT_HEADERS)
-    posts = response.json()["data"]["children"]
-    for post in posts:
-        url = post["data"]["url"]
-        title = post["data"]["title"]
-        cat = {"url": url, "title": title}
-        if ".gif" in url:
-            if url not in last_cats:
-                last_cats.append(url)
-                return cat
-    else:
+    try:
+        if len(cat_collection) < 1:
+            logging.info(f"Importing new cats from {CAT_URL}")
+            response = requests.get(CAT_URL, params=CAT_PARAMS, headers=CAT_HEADERS)
+            posts = response.json()["data"]["children"]
+            for post in posts:
+                url = post["data"]["url"]
+                title = post["data"]["title"]
+                cat = {"url": url, "title": title}
+                if ".gif" in url:
+                    if url not in posted_cats:
+                        cat_collection.append(url)
+
+        cat = cat_collection.popleft()
+        return cat
+
+    except:
         raise CatShortageError
 
 
@@ -98,11 +105,12 @@ def post_new_cat():
         logging.exception(f"Failed to get cat :( {exc}", exc_info=True)
         return
     else:
-        logging.info("Have cat: {cat}")
+        logging.info(f"Have cat: {cat}")
 
     try:
         response = post_cat(cat)
         response.raise_for_status()
+        posted_cats.append(cat)
     except:
         logging.error(f"Failed to post cat :({response})")
         return
@@ -118,6 +126,6 @@ for cat_time in CAT_TIMES:
     logging.info(f"Adding daily schedule at {cat_time}")
     schedule.every().day.at(cat_time).do(post_new_cat)
 
-while 1:
+while True:
     schedule.run_pending()
     time.sleep(1)
