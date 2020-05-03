@@ -7,8 +7,7 @@ Posts cat gifs to your Slack channel on a daily basis and makes your employees h
 Prerequisites
 -------------
 
-- python 3.5
-
+- python 3.8.1
 
 Configuration
 -------------
@@ -30,30 +29,3 @@ Cat to Slack is configured through environment variables:
 - `TZ`
 
   Optional timezone name in which the process will be run.
-
-
-Setting up and running
-----------------------
-
-### Manual
-
-Setup:
-
-	$ cp .env.sample .env && ${EDITOR} .env
-	$ pip install -r requirements.txt
-	$ pip install honcho
-
-Run:
-
-	$ honcho start
-
-
-### Dokku
-
-Deploy as usual. Make sure to set correct scale for the 'bot' process to 1:
-
-	$ dokku ps:scale cat-to-slack web=0 bot=1
-
-Set env vars:
-
-	$ dokku config:set cat-to-slack INCOMING_WEBHOOK_URL="...." CAT_CHANNEL="#cats" CAT_TIMES="10:00" TZ="Europe/Moscow"
