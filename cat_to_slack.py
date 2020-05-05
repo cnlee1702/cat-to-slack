@@ -125,10 +125,11 @@ def post_new_cat():
 
 CAT_TIMES = os.environ.get("CAT_TIMES", "10:00").split(",")
 
-for cat_time in CAT_TIMES:
-    logging.info(f"Adding daily schedule at {cat_time}")
-    schedule.every().day.at(cat_time).do(post_new_cat)
-
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+if __name__=="__main__":
+    for cat_time in CAT_TIMES:
+        logging.info(f"Adding daily schedule at {cat_time}")
+        schedule.every().day.at(cat_time).do(post_new_cat)
+    
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
